@@ -1,0 +1,174 @@
+{
+  "account_id": "123456789012",
+  "regions": [
+    "us-east-1"
+  ],
+  "started_at": "2026-11-15T21:05:50+00:00",
+  "score": 29,
+  "grade": "F",
+  "checks_run": 6,
+  "resources_scanned": 13,
+  "summary": {
+    "CRITICAL": 4,
+    "HIGH": 4,
+    "MEDIUM": 5,
+    "LOW": 1
+  },
+  "findings": [
+    {
+      "check_id": "LOG-001",
+      "title": "CloudTrail not logging",
+      "service": "CloudTrail",
+      "resource": "cloudtrail/us-east-1",
+      "region": "us-east-1",
+      "severity": "CRITICAL",
+      "description": "No active CloudTrail trail covers us-east-1. Without an audit log there is no record of who did what - incident response becomes guesswork.",
+      "remediation": "Create a multi-region trail: aws cloudtrail create-trail --name org-trail --s3-bucket-name <log-bucket> --is-multi-region-trail && aws cloudtrail start-logging --name org-trail",
+      "cis": "CIS 3.1"
+    },
+    {
+      "check_id": "EC2-001",
+      "title": "SSH open to the internet",
+      "service": "EC2",
+      "resource": "sg-941739722f78f4e54",
+      "region": "us-east-1",
+      "severity": "CRITICAL",
+      "description": "Security group 'bastion-ssh' (sg-941739722f78f4e54) allows SSH (port 22) from 0.0.0.0/0. Internet-exposed admin/database ports are constantly brute-forced by automated bots.",
+      "remediation": "Restrict the source to your office/VPN CIDR, or remove the rule and use AWS Systems Manager Session Manager for shell access.",
+      "cis": "CIS 5.2"
+    },
+    {
+      "check_id": "EC2-001",
+      "title": "RDP open to the internet",
+      "service": "EC2",
+      "resource": "sg-3484e61e3c3fd1b5a",
+      "region": "us-east-1",
+      "severity": "CRITICAL",
+      "description": "Security group 'win-jumpbox' (sg-3484e61e3c3fd1b5a) allows RDP (port 3389) from 0.0.0.0/0. Internet-exposed admin/database ports are constantly brute-forced by automated bots.",
+      "remediation": "Restrict the source to your office/VPN CIDR, or remove the rule and use AWS Systems Manager Session Manager for shell access.",
+      "cis": "CIS 5.2"
+    },
+    {
+      "check_id": "S3-002",
+      "title": "S3 bucket publicly accessible via ACL",
+      "service": "S3",
+      "resource": "arn:aws:s3:::acme-customer-exports",
+      "region": "global",
+      "severity": "CRITICAL",
+      "description": "Bucket 'acme-customer-exports' has an ACL granting READ to everyone on the internet. Public buckets are one of the most common causes of cloud data breaches.",
+      "remediation": "aws s3api put-bucket-acl --bucket acme-customer-exports --acl private",
+      "cis": "CIS 2.1.4"
+    },
+    {
+      "check_id": "EC2-001",
+      "title": "MySQL open to the internet",
+      "service": "EC2",
+      "resource": "sg-04f9754666cc3a8d7",
+      "region": "us-east-1",
+      "severity": "HIGH",
+      "description": "Security group 'legacy-mysql' (sg-04f9754666cc3a8d7) allows MySQL (port 3306) from 0.0.0.0/0. Internet-exposed admin/database ports are constantly brute-forced by automated bots.",
+      "remediation": "Restrict the source to your office/VPN CIDR, or remove the rule and use AWS Systems Manager Session Manager for shell access.",
+      "cis": ""
+    },
+    {
+      "check_id": "IAM-001",
+      "title": "Console user without MFA",
+      "service": "IAM",
+      "resource": "arn:aws:iam::123456789012:user/jsmith",
+      "region": "global",
+      "severity": "HIGH",
+      "description": "User 'jsmith' can sign in to the AWS console with only a password. A phished or reused password gives an attacker full access.",
+      "remediation": "Enable a virtual or hardware MFA device for this user and enforce MFA with an IAM policy.",
+      "cis": "CIS 1.10"
+    },
+    {
+      "check_id": "RDS-001",
+      "title": "RDS instance publicly accessible",
+      "service": "RDS",
+      "resource": "arn:aws:rds:us-east-1:123456789012:db:orders-db",
+      "region": "us-east-1",
+      "severity": "HIGH",
+      "description": "Database 'orders-db' has a public endpoint reachable from the internet.",
+      "remediation": "aws rds modify-db-instance --db-instance-identifier orders-db --no-publicly-accessible --apply-immediately",
+      "cis": "CIS 2.3.3"
+    },
+    {
+      "check_id": "S3-001",
+      "title": "S3 Block Public Access disabled",
+      "service": "S3",
+      "resource": "arn:aws:s3:::acme-customer-exports",
+      "region": "global",
+      "severity": "HIGH",
+      "description": "Bucket 'acme-customer-exports' does not have all four Block Public Access settings enabled, so a single bad ACL or policy change could expose its data to the internet.",
+      "remediation": "aws s3api put-public-access-block --bucket acme-customer-exports --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+      "cis": "CIS 2.1.4"
+    },
+    {
+      "check_id": "EC2-002",
+      "title": "EBS encryption-by-default disabled",
+      "service": "EC2",
+      "resource": "ebs-default/us-east-1",
+      "region": "us-east-1",
+      "severity": "MEDIUM",
+      "description": "New EBS volumes in us-east-1 are not encrypted automatically, so disk snapshots could leak data if shared or copied.",
+      "remediation": "aws ec2 enable-ebs-encryption-by-default --region us-east-1",
+      "cis": "CIS 2.2.1"
+    },
+    {
+      "check_id": "IAM-002",
+      "title": "Access key older than 90 days",
+      "service": "IAM",
+      "resource": "arn:aws:iam::123456789012:user/ci-deploy-bot (AKIADEMOSTALEKEY0001)",
+      "region": "global",
+      "severity": "MEDIUM",
+      "description": "Access key AKIADEMOSTALEKEY0001 for 'ci-deploy-bot' was created 2026-04-15 (214 days ago). Long-lived keys are frequently leaked in code repos and laptops.",
+      "remediation": "Rotate the key (create new, update apps, deactivate old) or move to IAM roles / SSO.",
+      "cis": "CIS 1.14"
+    },
+    {
+      "check_id": "IAM-003",
+      "title": "AdministratorAccess attached directly to user",
+      "service": "IAM",
+      "resource": "arn:aws:iam::123456789012:user/jsmith",
+      "region": "global",
+      "severity": "MEDIUM",
+      "description": "User 'jsmith' has full admin rights attached directly. This breaks least privilege and makes access hard to audit.",
+      "remediation": "Grant permissions through IAM groups or roles scoped to the job, and remove the direct attachment.",
+      "cis": "CIS 1.15"
+    },
+    {
+      "check_id": "IAM-004",
+      "title": "Weak or missing account password policy",
+      "service": "IAM",
+      "resource": "account-password-policy",
+      "region": "global",
+      "severity": "MEDIUM",
+      "description": "The account password policy is missing or allows passwords shorter than 14 characters.",
+      "remediation": "aws iam update-account-password-policy --minimum-password-length 14 --require-symbols --require-numbers --require-uppercase-characters --require-lowercase-characters --password-reuse-prevention 24",
+      "cis": "CIS 1.8"
+    },
+    {
+      "check_id": "RDS-002",
+      "title": "RDS storage not encrypted",
+      "service": "RDS",
+      "resource": "arn:aws:rds:us-east-1:123456789012:db:orders-db",
+      "region": "us-east-1",
+      "severity": "MEDIUM",
+      "description": "Database 'orders-db' stores data unencrypted at rest.",
+      "remediation": "Snapshot the DB, copy the snapshot with --kms-key-id, and restore from the encrypted copy.",
+      "cis": "CIS 2.3.1"
+    },
+    {
+      "check_id": "S3-003",
+      "title": "S3 versioning disabled",
+      "service": "S3",
+      "resource": "arn:aws:s3:::acme-customer-exports",
+      "region": "global",
+      "severity": "LOW",
+      "description": "Bucket 'acme-customer-exports' does not keep object versions, so deleted or overwritten (e.g. ransomware-encrypted) objects cannot be recovered.",
+      "remediation": "aws s3api put-bucket-versioning --bucket acme-customer-exports --versioning-configuration Status=Enabled",
+      "cis": ""
+    }
+  ],
+  "errors": []
+}
